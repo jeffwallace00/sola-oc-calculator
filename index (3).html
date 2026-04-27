@@ -1,0 +1,781 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Sola OC Calculator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg-deep: #0A0820;
+    --bg-mid: #15102E;
+    --surface: rgba(255, 255, 255, 0.04);
+    --surface-2: rgba(255, 255, 255, 0.07);
+    --surface-glass: rgba(30, 25, 65, 0.55);
+    --border: rgba(255, 255, 255, 0.08);
+    --border-strong: rgba(255, 255, 255, 0.16);
+    --text: #F5F3FF;
+    --text-muted: #9B95C2;
+    --text-dim: #6B6691;
+    --accent: #8B7FE8;
+    --accent-bright: #A89BFF;
+    --accent-glow: rgba(139, 127, 232, 0.4);
+    --gradient-purple: linear-gradient(135deg, #6B5FD1 0%, #8B7FE8 50%, #B8A9FF 100%);
+    --gradient-card: linear-gradient(135deg, rgba(139, 127, 232, 0.15) 0%, rgba(139, 127, 232, 0.04) 100%);
+    --positive: #6FE89A;
+    --negative: #F08AA8;
+    --warn: #F5C16C;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { min-height: 100vh; }
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--bg-deep);
+    background-image:
+      radial-gradient(ellipse 80% 50% at 50% -10%, rgba(139, 127, 232, 0.25), transparent),
+      radial-gradient(ellipse 60% 40% at 100% 50%, rgba(184, 169, 255, 0.08), transparent),
+      radial-gradient(ellipse 60% 40% at 0% 80%, rgba(107, 95, 209, 0.1), transparent);
+    color: var(--text);
+    line-height: 1.5;
+    padding: 24px 20px 80px;
+    overflow-x: hidden;
+  }
+  .wrap { max-width: 1080px; margin: 0 auto; position: relative; z-index: 1; }
+
+  nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 36px;
+    padding: 0 4px;
+  }
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 17px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+  .logo-mark {
+    width: 28px; height: 28px;
+    border-radius: 8px;
+    background: var(--gradient-purple);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 14px;
+    color: #fff;
+  }
+  .nav-links { display: flex; gap: 28px; font-size: 14px; color: var(--text-muted); }
+  .nav-links a { color: inherit; text-decoration: none; transition: color 0.2s; }
+  .nav-links a:hover { color: var(--text); }
+
+  .hero { text-align: center; margin-bottom: 32px; }
+  .hero h1 {
+    font-size: clamp(36px, 6vw, 56px);
+    font-weight: 600;
+    letter-spacing: -0.03em;
+    line-height: 1.05;
+    margin-bottom: 0;
+    background: linear-gradient(180deg, #FFFFFF 0%, #B8A9FF 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .tabs {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 28px;
+    padding: 6px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    flex-wrap: wrap;
+  }
+  .tab-btn {
+    flex: 1;
+    min-width: 130px;
+    padding: 11px 18px;
+    background: transparent;
+    border: none;
+    border-radius: 10px;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .tab-btn:hover { color: var(--text); }
+  .tab-btn.active {
+    background: var(--gradient-purple);
+    color: #fff;
+    box-shadow: 0 4px 16px var(--accent-glow);
+  }
+
+  .grid-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 18px;
+    margin-bottom: 18px;
+  }
+  .card {
+    background: var(--surface-glass);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 24px 26px;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    position: relative;
+    overflow: hidden;
+  }
+  .card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
+  }
+  .card-title {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-bottom: 20px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  .card-title-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .card-title-row .card-title { margin-bottom: 0; }
+  .card-pill {
+    font-size: 11px;
+    font-weight: 500;
+    padding: 4px 9px;
+    border-radius: 999px;
+    background: rgba(245, 193, 108, 0.12);
+    color: var(--warn);
+    border: 1px solid rgba(245, 193, 108, 0.25);
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+  }
+
+  /* TI card: horizontal layout */
+  .card-wide { margin-bottom: 24px; }
+  .ti-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 24px;
+  }
+  .ti-grid .slider-row { margin-bottom: 0; }
+
+  .ti-totals {
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border);
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 18px;
+  }
+  .ti-summary-item .ti-summary-label {
+    font-size: 11px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 4px;
+  }
+  .ti-summary-item .ti-summary-val {
+    font-size: 17px;
+    font-weight: 600;
+    color: var(--text);
+    font-variant-numeric: tabular-nums;
+  }
+  .ti-summary-item .ti-summary-val.gap { color: var(--warn); }
+
+  @media (max-width: 760px) {
+    .ti-grid { grid-template-columns: repeat(2, 1fr); gap: 18px 20px; }
+    .ti-totals { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  .slider-row { margin-bottom: 22px; }
+  .slider-row:last-child { margin-bottom: 0; }
+  .slider-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    font-size: 13px;
+    margin-bottom: 12px;
+    gap: 12px;
+  }
+  .slider-label { color: var(--text-muted); }
+  .slider-val {
+    font-weight: 600;
+    color: var(--text);
+    font-size: 15px;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+
+  input[type="range"] {
+    width: 100%;
+    -webkit-appearance: none;
+    appearance: none;
+    background: transparent;
+    height: 22px;
+    cursor: pointer;
+  }
+  input[type="range"]::-webkit-slider-runnable-track {
+    height: 4px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 4px;
+  }
+  input[type="range"]::-moz-range-track {
+    height: 4px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 4px;
+  }
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    height: 18px;
+    width: 18px;
+    border-radius: 50%;
+    background: #fff;
+    margin-top: -7px;
+    border: none;
+    box-shadow: 0 0 0 2px var(--accent), 0 4px 12px var(--accent-glow);
+    transition: transform 0.15s;
+  }
+  input[type="range"]::-moz-range-thumb {
+    height: 18px;
+    width: 18px;
+    border-radius: 50%;
+    background: #fff;
+    border: none;
+    box-shadow: 0 0 0 2px var(--accent), 0 4px 12px var(--accent-glow);
+  }
+  input[type="range"]:hover::-webkit-slider-thumb { transform: scale(1.1); }
+
+  .hero-stat {
+    background: var(--gradient-card);
+    border: 1px solid rgba(184, 169, 255, 0.2);
+    border-radius: 20px;
+    padding: 28px 32px;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 16px;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero-stat::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -20%;
+    width: 400px;
+    height: 400px;
+    background: radial-gradient(circle, rgba(184, 169, 255, 0.15), transparent 60%);
+    pointer-events: none;
+  }
+  .hero-stat-label {
+    font-size: 14px;
+    color: var(--text-muted);
+    margin-bottom: 6px;
+  }
+  .hero-stat-value {
+    font-size: clamp(32px, 5vw, 44px);
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    background: linear-gradient(135deg, #FFFFFF 0%, #B8A9FF 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-variant-numeric: tabular-nums;
+    line-height: 1.1;
+  }
+  .hero-stat-sub {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-top: 4px;
+  }
+  .hero-stat-side {
+    text-align: right;
+    z-index: 1;
+  }
+  .hero-stat-side-val {
+    font-size: 22px;
+    font-weight: 600;
+    color: var(--text);
+    font-variant-numeric: tabular-nums;
+  }
+  .hero-stat-side-label {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-top: 2px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .grid-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 14px;
+    margin-bottom: 24px;
+  }
+  .stat {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 18px 20px;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    transition: border-color 0.2s, transform 0.2s;
+  }
+  .stat:hover {
+    border-color: var(--border-strong);
+    transform: translateY(-2px);
+  }
+  .stat-label {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 500;
+  }
+  .stat-value {
+    font-size: 22px;
+    font-weight: 600;
+    color: var(--text);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.01em;
+  }
+  .stat-value.warn { color: var(--warn); }
+
+  .section-label {
+    font-size: 12px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin: 8px 0 14px;
+    font-weight: 500;
+  }
+
+  .table-wrap {
+    overflow-x: auto;
+    margin-bottom: 24px;
+    background: var(--surface-glass);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 8px;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+  }
+  th {
+    text-align: left;
+    padding: 16px 18px;
+    color: var(--text-muted);
+    font-weight: 500;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    border-bottom: 1px solid var(--border);
+  }
+  th.r, td.r { text-align: right; }
+  td {
+    padding: 18px;
+    border-bottom: 1px solid var(--border);
+    font-variant-numeric: tabular-nums;
+  }
+  tbody tr:last-child td { border-bottom: 1px solid var(--border-strong); }
+  tfoot td {
+    font-weight: 600;
+    color: var(--text);
+    border-bottom: none;
+    padding-top: 20px;
+    padding-bottom: 16px;
+  }
+  td .loc-name { font-weight: 500; color: var(--text); }
+
+  footer {
+    margin-top: 56px;
+    text-align: center;
+    font-size: 13px;
+    color: var(--text-dim);
+  }
+
+  @media (max-width: 600px) {
+    body { padding: 16px 16px 60px; }
+    nav { margin-bottom: 24px; }
+    .nav-links { display: none; }
+    .hero { margin-bottom: 24px; }
+    .hero-stat { padding: 22px 20px; }
+    .hero-stat-side { text-align: left; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <nav>
+    <div class="logo">
+      <div class="logo-mark">S</div>
+      <span>Sola OC</span>
+    </div>
+    <div class="nav-links">
+      <a href="#">Calculator</a>
+      <a href="#">Locations</a>
+      <a href="#">About</a>
+    </div>
+  </nav>
+
+  <section class="hero">
+    <h1>Sola OC Calculator</h1>
+  </section>
+
+  <div class="tabs" id="tabs">
+    <button class="tab-btn active" data-loc="sc">San Clemente</button>
+    <button class="tab-btn" data-loc="dp">Dana Point</button>
+    <button class="tab-btn" data-loc="ln">Laguna Niguel</button>
+    <button class="tab-btn" data-loc="all">Portfolio</button>
+  </div>
+
+  <div id="single-view">
+    <div class="grid-cards">
+      <div class="card">
+        <p class="card-title">Space</p>
+        <div class="slider-row">
+          <div class="slider-head"><span class="slider-label">Total square feet</span><span class="slider-val" id="sqft-out">5,000</span></div>
+          <input type="range" id="sqft" min="1500" max="15000" step="100" value="5000" />
+        </div>
+        <div class="slider-row">
+          <div class="slider-head"><span class="slider-label">Sq ft per chair</span><span class="slider-val" id="perchair-out">175</span></div>
+          <input type="range" id="perchair" min="125" max="225" step="5" value="175" />
+        </div>
+      </div>
+
+      <div class="card">
+        <p class="card-title">Revenue</p>
+        <div class="slider-row">
+          <div class="slider-head"><span class="slider-label">Weekly rent / occupied chair</span><span class="slider-val" id="rev-out">$325</span></div>
+          <input type="range" id="rev" min="125" max="600" step="5" value="325" />
+        </div>
+        <div class="slider-row">
+          <div class="slider-head"><span class="slider-label">Occupancy</span><span class="slider-val" id="occ-out">90%</span></div>
+          <input type="range" id="occ" min="50" max="100" step="1" value="90" />
+        </div>
+      </div>
+
+      <div class="card">
+        <p class="card-title">Lease</p>
+        <div class="slider-row">
+          <div class="slider-head"><span class="slider-label">$ / sq ft / year (base)</span><span class="slider-val" id="psf-out">$42</span></div>
+          <input type="range" id="psf" min="18" max="72" step="0.5" value="42" />
+        </div>
+        <div class="slider-row">
+          <div class="slider-head"><span class="slider-label">NNN / sq ft / year</span><span class="slider-val" id="nnn-out">$10</span></div>
+          <input type="range" id="nnn" min="0" max="20" step="0.5" value="10" />
+        </div>
+      </div>
+    </div>
+
+    <div class="card card-wide">
+      <div class="card-title-row">
+        <p class="card-title">TI & build-out loan</p>
+        <span class="card-pill" id="ti-pill">+$30/sf gap</span>
+      </div>
+      <div class="ti-grid">
+        <div class="slider-row">
+          <div class="slider-head"><span class="slider-label">Construction $/sf</span><span class="slider-val" id="cc-out">$110</span></div>
+          <input type="range" id="cc" min="40" max="200" step="5" value="110" />
+        </div>
+        <div class="slider-row">
+          <div class="slider-head"><span class="slider-label">TI allowance $/sf</span><span class="slider-val" id="ti-out">$80</span></div>
+          <input type="range" id="ti" min="0" max="200" step="5" value="80" />
+        </div>
+        <div class="slider-row">
+          <div class="slider-head"><span class="slider-label">Loan annual rate</span><span class="slider-val" id="rate-out">9.0%</span></div>
+          <input type="range" id="rate" min="0" max="15" step="0.25" value="9" />
+        </div>
+        <div class="slider-row">
+          <div class="slider-head"><span class="slider-label">Loan term (years)</span><span class="slider-val" id="term-out">10 yrs</span></div>
+          <input type="range" id="term" min="3" max="25" step="1" value="10" />
+        </div>
+      </div>
+      <div class="ti-totals">
+        <div class="ti-summary-item">
+          <p class="ti-summary-label">Total build cost</p>
+          <p class="ti-summary-val" id="ti-totalcost">$550,000</p>
+        </div>
+        <div class="ti-summary-item">
+          <p class="ti-summary-label">Landlord TI</p>
+          <p class="ti-summary-val" id="ti-totalti">$400,000</p>
+        </div>
+        <div class="ti-summary-item">
+          <p class="ti-summary-label">Out of pocket (loan)</p>
+          <p class="ti-summary-val gap" id="ti-gap">$150,000</p>
+        </div>
+        <div class="ti-summary-item">
+          <p class="ti-summary-label">Monthly debt service</p>
+          <p class="ti-summary-val gap" id="ti-payment">$1,900</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="hero-stat">
+      <div style="z-index: 1;">
+        <p class="hero-stat-label">Net annual cash flow (rev − lease − debt service)</p>
+        <p class="hero-stat-value" id="m-net">$140,000</p>
+        <p class="hero-stat-sub">Before franchise fees, utilities, marketing, payroll, and CapEx</p>
+      </div>
+      <div class="hero-stat-side">
+        <p class="hero-stat-side-val" id="m-allin">68%</p>
+        <p class="hero-stat-side-label">All-in cost ratio</p>
+      </div>
+    </div>
+
+    <p class="section-label">Revenue & cost breakdown</p>
+    <div class="grid-stats">
+      <div class="stat"><p class="stat-label">Total chairs</p><p class="stat-value" id="m-chairs">28</p></div>
+      <div class="stat"><p class="stat-label">Occupied chairs</p><p class="stat-value" id="m-occ-chairs">25</p></div>
+      <div class="stat"><p class="stat-label">Weekly revenue</p><p class="stat-value" id="m-wrev">$8,125</p></div>
+      <div class="stat"><p class="stat-label">Monthly revenue</p><p class="stat-value" id="m-mrev">$35,208</p></div>
+      <div class="stat"><p class="stat-label">Annual revenue</p><p class="stat-value" id="m-arev">$422,500</p></div>
+      <div class="stat"><p class="stat-label">Monthly lease</p><p class="stat-value" id="m-mlease">$21,667</p></div>
+      <div class="stat"><p class="stat-label">Annual lease</p><p class="stat-value" id="m-alease">$260,000</p></div>
+      <div class="stat"><p class="stat-label">Monthly debt service</p><p class="stat-value warn" id="m-mdebt">$1,900</p></div>
+      <div class="stat"><p class="stat-label">Annual debt service</p><p class="stat-value warn" id="m-adebt">$22,800</p></div>
+    </div>
+  </div>
+
+  <div id="portfolio-view" style="display: none;">
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Location</th>
+            <th class="r">Sq ft</th>
+            <th class="r">Annual rev</th>
+            <th class="r">Annual lease</th>
+            <th class="r">Annual debt</th>
+            <th class="r">Net cash flow</th>
+          </tr>
+        </thead>
+        <tbody id="portfolio-body"></tbody>
+        <tfoot>
+          <tr>
+            <td>Total</td>
+            <td class="r" id="p-sqft">-</td>
+            <td class="r" id="p-arev">-</td>
+            <td class="r" id="p-alease">-</td>
+            <td class="r" id="p-adebt">-</td>
+            <td class="r" id="p-net">-</td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+
+    <div class="hero-stat">
+      <div style="z-index: 1;">
+        <p class="hero-stat-label">Combined annual cash flow across all three locations</p>
+        <p class="hero-stat-value" id="p-net-hero">-</p>
+        <p class="hero-stat-sub">Net of lease and TI loan debt service · Pre-franchise/utilities/payroll</p>
+      </div>
+      <div class="hero-stat-side">
+        <p class="hero-stat-side-val" id="p-allin">-</p>
+        <p class="hero-stat-side-label">Portfolio all-in ratio</p>
+      </div>
+    </div>
+
+    <p class="section-label">Portfolio totals</p>
+    <div class="grid-stats">
+      <div class="stat"><p class="stat-label">Total chairs</p><p class="stat-value" id="p-tchairs">-</p></div>
+      <div class="stat"><p class="stat-label">Total out of pocket</p><p class="stat-value warn" id="p-gap">-</p></div>
+      <div class="stat"><p class="stat-label">Monthly revenue</p><p class="stat-value" id="p-mrev">-</p></div>
+      <div class="stat"><p class="stat-label">Monthly lease</p><p class="stat-value" id="p-mlease">-</p></div>
+      <div class="stat"><p class="stat-label">Monthly debt service</p><p class="stat-value warn" id="p-mdebt">-</p></div>
+    </div>
+  </div>
+
+  <footer>
+    Built for Jeff Wallace · Estimates only, verify with seller financials and contractor bids before LOI
+  </footer>
+</div>
+
+<script>
+(function() {
+  const state = {
+    sc: { sqft: 5000, perchair: 175, rev: 325, occ: 90, psf: 42, nnn: 10, cc: 110, ti: 80, rate: 9, term: 10 },
+    dp: { sqft: 5500, perchair: 175, rev: 350, occ: 92, psf: 44, nnn: 10, cc: 115, ti: 85, rate: 9, term: 10 },
+    ln: { sqft: 4800, perchair: 175, rev: 310, occ: 88, psf: 38, nnn: 9,  cc: 105, ti: 75, rate: 9, term: 10 }
+  };
+  const names = { sc: "San Clemente", dp: "Dana Point", ln: "Laguna Niguel" };
+  let current = "sc";
+  const WEEKS_PER_YEAR = 52;
+
+  const fmt = n => "$" + Math.round(n).toLocaleString();
+  const num = n => Math.round(n).toLocaleString();
+
+  function monthlyPayment(principal, annualRatePct, termYears) {
+    if (principal <= 0) return 0;
+    const r = (annualRatePct / 100) / 12;
+    const n = termYears * 12;
+    if (r === 0) return principal / n;
+    return principal * (r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1);
+  }
+
+  function loadInputs() {
+    const s = state[current];
+    ["sqft","perchair","rev","occ","psf","nnn","cc","ti","rate","term"].forEach(k => {
+      document.getElementById(k).value = s[k];
+    });
+  }
+
+  function calc(s) {
+    const chairs = Math.floor(s.sqft / s.perchair);
+    const occChairs = Math.round(chairs * s.occ / 100);
+    const wRev = occChairs * s.rev;
+    const aRev = wRev * WEEKS_PER_YEAR;
+    const mRev = aRev / 12;
+    const aLease = s.sqft * (s.psf + s.nnn);
+    const mLease = aLease / 12;
+
+    const totalCost = s.sqft * s.cc;
+    const totalTI = s.sqft * s.ti;
+    const gap = Math.max(0, totalCost - totalTI);
+    const mDebt = monthlyPayment(gap, s.rate, s.term);
+    const aDebt = mDebt * 12;
+
+    const net = aRev - aLease - aDebt;
+    const allInRatio = aRev > 0 ? ((aLease + aDebt) / aRev * 100) : 0;
+    const gapPerSf = s.cc - s.ti;
+
+    return { chairs, occChairs, wRev, mRev, aRev, aLease, mLease,
+             totalCost, totalTI, gap, mDebt, aDebt, net, allInRatio, gapPerSf };
+  }
+
+  function updateSingle() {
+    const s = state[current];
+    document.getElementById("sqft-out").textContent = num(s.sqft);
+    document.getElementById("perchair-out").textContent = s.perchair;
+    document.getElementById("rev-out").textContent = fmt(s.rev);
+    document.getElementById("occ-out").textContent = s.occ + "%";
+    document.getElementById("psf-out").textContent = "$" + s.psf;
+    document.getElementById("nnn-out").textContent = "$" + s.nnn;
+    document.getElementById("cc-out").textContent = "$" + s.cc;
+    document.getElementById("ti-out").textContent = "$" + s.ti;
+    document.getElementById("rate-out").textContent = s.rate.toFixed(2) + "%";
+    document.getElementById("term-out").textContent = s.term + " yrs";
+
+    const r = calc(s);
+    const gapSign = r.gapPerSf >= 0 ? "+" : "−";
+    document.getElementById("ti-pill").textContent = gapSign + "$" + Math.abs(r.gapPerSf) + "/sf gap";
+
+    document.getElementById("ti-totalcost").textContent = fmt(r.totalCost);
+    document.getElementById("ti-totalti").textContent = fmt(r.totalTI);
+    document.getElementById("ti-gap").textContent = fmt(r.gap);
+    document.getElementById("ti-payment").textContent = fmt(r.mDebt);
+
+    document.getElementById("m-chairs").textContent = r.chairs;
+    document.getElementById("m-occ-chairs").textContent = r.occChairs;
+    document.getElementById("m-wrev").textContent = fmt(r.wRev);
+    document.getElementById("m-mrev").textContent = fmt(r.mRev);
+    document.getElementById("m-arev").textContent = fmt(r.aRev);
+    document.getElementById("m-mlease").textContent = fmt(r.mLease);
+    document.getElementById("m-alease").textContent = fmt(r.aLease);
+    document.getElementById("m-mdebt").textContent = fmt(r.mDebt);
+    document.getElementById("m-adebt").textContent = fmt(r.aDebt);
+
+    document.getElementById("m-net").textContent = fmt(r.net);
+    document.getElementById("m-allin").textContent = Math.round(r.allInRatio) + "%";
+  }
+
+  function updatePortfolio() {
+    const locs = ["sc","dp","ln"];
+    const body = document.getElementById("portfolio-body");
+    body.innerHTML = "";
+    let tSqft = 0, tChairs = 0, tARev = 0, tALease = 0, tADebt = 0,
+        tMRev = 0, tMLease = 0, tMDebt = 0, tGap = 0;
+    locs.forEach(k => {
+      const s = state[k];
+      const r = calc(s);
+      tSqft += s.sqft; tChairs += r.chairs; tARev += r.aRev;
+      tALease += r.aLease; tADebt += r.aDebt;
+      tMRev += r.mRev; tMLease += r.mLease; tMDebt += r.mDebt; tGap += r.gap;
+      const tr = document.createElement("tr");
+      tr.innerHTML =
+        '<td><span class="loc-name">' + names[k] + "</span></td>" +
+        '<td class="r">' + num(s.sqft) + "</td>" +
+        '<td class="r">' + fmt(r.aRev) + "</td>" +
+        '<td class="r">' + fmt(r.aLease) + "</td>" +
+        '<td class="r">' + fmt(r.aDebt) + "</td>" +
+        '<td class="r">' + fmt(r.net) + "</td>";
+      body.appendChild(tr);
+    });
+    document.getElementById("p-sqft").textContent = num(tSqft);
+    document.getElementById("p-arev").textContent = fmt(tARev);
+    document.getElementById("p-alease").textContent = fmt(tALease);
+    document.getElementById("p-adebt").textContent = fmt(tADebt);
+    document.getElementById("p-net").textContent = fmt(tARev - tALease - tADebt);
+    document.getElementById("p-net-hero").textContent = fmt(tARev - tALease - tADebt);
+    document.getElementById("p-allin").textContent = tARev > 0
+      ? Math.round((tALease + tADebt) / tARev * 100) + "%" : "-";
+    document.getElementById("p-tchairs").textContent = tChairs;
+    document.getElementById("p-gap").textContent = fmt(tGap);
+    document.getElementById("p-mrev").textContent = fmt(tMRev);
+    document.getElementById("p-mlease").textContent = fmt(tMLease);
+    document.getElementById("p-mdebt").textContent = fmt(tMDebt);
+  }
+
+  document.querySelectorAll(".tab-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      const loc = btn.dataset.loc;
+      if (loc === "all") {
+        document.getElementById("single-view").style.display = "none";
+        document.getElementById("portfolio-view").style.display = "block";
+        updatePortfolio();
+      } else {
+        current = loc;
+        document.getElementById("single-view").style.display = "block";
+        document.getElementById("portfolio-view").style.display = "none";
+        loadInputs();
+        updateSingle();
+      }
+    });
+  });
+
+  ["sqft","perchair","rev","occ","psf","nnn","cc","ti","rate","term"].forEach(id => {
+    document.getElementById(id).addEventListener("input", e => {
+      state[current][id] = parseFloat(e.target.value);
+      updateSingle();
+    });
+  });
+
+  loadInputs();
+  updateSingle();
+})();
+</script>
+</body>
+</html>
